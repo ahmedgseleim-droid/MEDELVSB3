@@ -1,0 +1,234 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: records
+    description: Troubleshooting record operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /records:
+    get:
+      operationId: listRecords
+      tags: [records]
+      summary: List all records
+      responses:
+        "200":
+          description: List of records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Record"
+    post:
+      operationId: createRecord
+      tags: [records]
+      summary: Create a new record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordInput"
+      responses:
+        "201":
+          description: Created record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Record"
+  /records/{id}:
+    get:
+      operationId: getRecord
+      tags: [records]
+      summary: Get a record by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Record found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Record"
+        "404":
+          description: Not found
+    put:
+      operationId: updateRecord
+      tags: [records]
+      summary: Update a record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordInput"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Record"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteRecord
+      tags: [records]
+      summary: Delete a record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Not found
+  /records/stats:
+    get:
+      operationId: getRecordStats
+      tags: [records]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordStats"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    RecordInput:
+      type: object
+      properties:
+        patientName:
+          type: string
+        dob:
+          type: string
+        phone:
+          type: string
+        serial:
+          type: string
+        implant:
+          type: string
+        issueDescription:
+          type: string
+        conditions:
+          type: string
+        skin:
+          type: array
+          items:
+            type: string
+        visual:
+          type: array
+          items:
+            type: string
+        audio:
+          type: array
+          items:
+            type: string
+        physical:
+          type: array
+          items:
+            type: string
+        accessory:
+          type: array
+          items:
+            type: string
+        connectivity:
+          type: array
+          items:
+            type: string
+        steps:
+          type: array
+          items:
+            type: string
+        resolved:
+          type: string
+        resolvedHow:
+          type: string
+        nextAction:
+          type: string
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+    Record:
+      allOf:
+        - $ref: "#/components/schemas/RecordInput"
+        - type: object
+          properties:
+            id:
+              type: integer
+          required:
+            - id
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+    RecordStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        resolved:
+          type: integer
+        unresolved:
+          type: integer
+        bonebridge:
+          type: integer
+        soundbridge:
+          type: integer
+      required:
+        - total
+        - resolved
+        - unresolved
+        - bonebridge
+        - soundbridge
