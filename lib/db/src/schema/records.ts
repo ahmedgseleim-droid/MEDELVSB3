@@ -1,65 +1,31 @@
-import { z } from "zod";
-import type {
-  FirestoreDataConverter,
-  QueryDocumentSnapshot,
-} from "firebase-admin/firestore";
+import { pgTable, serial, text } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod/v4";
 
-export const insertRecordSchema = z.object({
-  patientName: z.string().default(""),
-  dob: z.string().default(""),
-  phone: z.string().default(""),
-  serial: z.string().default(""),
-  implant: z.string().default(""),
-  issueDescription: z.string().default(""),
-  conditions: z.string().default(""),
-  skin: z.array(z.string()).default([]),
-  visual: z.array(z.string()).default([]),
-  audio: z.array(z.string()).default([]),
-  physical: z.array(z.string()).default([]),
-  accessory: z.array(z.string()).default([]),
-  connectivity: z.array(z.string()).default([]),
-  steps: z.array(z.string()).default([]),
-  resolved: z.string().default(""),
-  resolvedHow: z.string().default(""),
-  nextAction: z.string().default(""),
-  contactName: z.string().default(""),
-  contactEmail: z.string().default(""),
+export const recordsTable = pgTable("records", {
+  id: serial("id").primaryKey(),
+  patientName: text("patient_name").notNull().default(""),
+  dob: text("dob").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  serial: text("serial").notNull().default(""),
+  implant: text("implant").notNull().default(""),
+  issueDescription: text("issue_description").notNull().default(""),
+  conditions: text("conditions").notNull().default(""),
+  skin: text("skin").array().notNull().default([]),
+  visual: text("visual").array().notNull().default([]),
+  audio: text("audio").array().notNull().default([]),
+  physical: text("physical").array().notNull().default([]),
+  accessory: text("accessory").array().notNull().default([]),
+  connectivity: text("connectivity").array().notNull().default([]),
+  steps: text("steps").array().notNull().default([]),
+  resolved: text("resolved").notNull().default(""),
+  resolvedHow: text("resolved_how").notNull().default(""),
+  nextAction: text("next_action").notNull().default(""),
+  contactName: text("contact_name").notNull().default(""),
+  contactEmail: text("contact_email").notNull().default(""),
+  submittedBy: text("submitted_by").notNull().default(""),
 });
 
+export const insertRecordSchema = createInsertSchema(recordsTable).omit({ id: true });
 export type InsertRecord = z.infer<typeof insertRecordSchema>;
-export type Record = InsertRecord & { id: number };
-
-export const recordConverter: FirestoreDataConverter<Record> = {
-  toFirestore(record: Record) {
-    return { ...record };
-  },
-  fromFirestore(snapshot: QueryDocumentSnapshot): Record {
-    const d = snapshot.data();
-    return {
-      id: d.id as number,
-      patientName: d.patientName ?? "",
-      dob: d.dob ?? "",
-      phone: d.phone ?? "",
-      serial: d.serial ?? "",
-      implant: d.implant ?? "",
-      issueDescription: d.issueDescription ?? "",
-      conditions: d.conditions ?? "",
-      skin: d.skin ?? [],
-      visual: d.visual ?? [],
-      audio: d.audio ?? [],
-      physical: d.physical ?? [],
-      accessory: d.accessory ?? [],
-      connectivity: d.connectivity ?? [],
-      steps: d.steps ?? [],
-      resolved: d.resolved ?? "",
-      resolvedHow: d.resolvedHow ?? "",
-      nextAction: d.nextAction ?? "",
-      contactName: d.contactName ?? "",
-      contactEmail: d.contactEmail ?? "",
-    };
-  },
-};
-
-export const RECORDS_COLLECTION = "records";
-export const META_COLLECTION = "meta";
-export const COUNTER_DOC = "idCounter";
+export type Record = typeof recordsTable.$inferSelect;

@@ -1,42 +1,72 @@
 import { useState } from "react";
-import { login } from "@/lib/auth";
+import { login, type UserRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface PasswordGateProps {
-  onSuccess: () => void;
+  onSuccess: (role: UserRole, username: string) => void;
 }
 
 export function PasswordGate({ onSuccess }: PasswordGateProps) {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(false);
-    const ok = await login(password);
+    setError("");
+    const result = await login(username, password);
     setLoading(false);
-    if (ok) {
-      onSuccess();
+    if (result) {
+      onSuccess(result.role, result.username);
     } else {
-      setError(true);
+      setError("Incorrect username or password. Please try again.");
       setPassword("");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5]">
-      <div className="bg-white rounded-xl border-2 border-[#7a0000] shadow-lg p-10 w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#F0F0F0" }}>
+      <div className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm" style={{ border: "2px solid #C60C30" }}>
+
+        {/* Logo / Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-[#7a0000] mb-1">MEDEL — SAMBA 2 Tracker</h1>
-          <p className="text-sm text-muted-foreground">Enter your password to continue</p>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full" style={{ background: "#C60C30" }} />
+            <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#646464" }}>
+              MED-EL
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "#C60C30" }}>
+            Device Tracker
+          </h1>
+          <p className="text-sm" style={{ color: "#979594" }}>
+            Sign in to continue
+          </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username — only needed for staff */}
+          <div className="space-y-1.5">
+            <Label htmlFor="username" style={{ color: "#0D0D0D" }}>
+              Username <span style={{ color: "#979594", fontWeight: 400 }}>(Staff only)</span>
+            </Label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. USER1"
+              autoComplete="username"
+              style={{ borderColor: "#E4E4E4" }}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password" style={{ color: "#0D0D0D" }}>Password</Label>
             <Input
               id="password"
               type="password"
@@ -44,23 +74,30 @@ export function PasswordGate({ onSuccess }: PasswordGateProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
               autoFocus
-              data-testid="input-password"
+              autoComplete="current-password"
+              style={{ borderColor: "#E4E4E4" }}
             />
-            {error && (
-              <p className="text-sm text-destructive font-medium" data-testid="text-error">
-                Incorrect password. Please try again.
-              </p>
-            )}
           </div>
+
+          {error && (
+            <p className="text-sm font-medium" style={{ color: "#C60C30" }}>
+              {error}
+            </p>
+          )}
+
           <Button
             type="submit"
-            className="w-full bg-[#7a0000] hover:bg-[#550000] text-white"
+            className="w-full font-semibold text-white mt-2"
+            style={{ background: "#C60C30" }}
             disabled={loading || !password}
-            data-testid="button-login"
           >
-            {loading ? "Checking..." : "Sign In"}
+            {loading ? "Signing in…" : "Sign In"}
           </Button>
         </form>
+
+        <p className="text-xs text-center mt-6" style={{ color: "#BEBEBE" }}>
+          Admin: leave username blank · Staff: enter your username
+        </p>
       </div>
     </div>
   );

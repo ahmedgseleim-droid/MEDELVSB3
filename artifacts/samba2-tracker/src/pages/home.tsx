@@ -6,8 +6,9 @@ import {
   getListRecordsQueryKey,
   getGetRecordStatsQueryKey,
 } from "@workspace/api-client-react";
-type Record = { id: number; patientName: string; dob: string; phone: string; serial: string; implant: string; issueDescription: string; conditions: string; skin: string[]; visual: string[]; audio: string[]; physical: string[]; accessory: string[]; connectivity: string[]; steps: string[]; resolved: string; resolvedHow: string; nextAction: string; contactName: string; contactEmail: string; };
-import { Download } from "lucide-react";
+type Record = { id: number; patientName: string; dob: string; phone: string; serial: string; implant: string; issueDescription: string; conditions: string; skin: string[]; visual: string[]; audio: string[]; physical: string[]; accessory: string[]; connectivity: string[]; steps: string[]; resolved: string; resolvedHow: string; nextAction: string; contactName: string; contactEmail: string; submittedBy?: string; };
+import { Download, LogOut } from "lucide-react";
+import { clearStoredToken } from "@/lib/auth";
 import {
   Table,
   TableBody,
@@ -145,6 +146,11 @@ export default function Home() {
           MEDEL — Device Troubleshooting Tracker
         </h1>
         <p className="text-muted-foreground mt-2">Patient Case Troubleshooting Log</p>
+      </div>
+      <button onClick={() => { clearStoredToken(); window.location.reload(); }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <span>Sign out</span>
+      </button>
+      <div className="hidden">
       </div>
 
       <div className="mb-6 flex gap-2 border-b">
@@ -300,6 +306,7 @@ function Samba2Table({
           <TableHead className="whitespace-nowrap">Contact Email</TableHead>
           <TableHead className="whitespace-nowrap max-w-[180px]">Issue Description</TableHead>
           <TableHead className="whitespace-nowrap max-w-[180px]">Conditions</TableHead>
+          <TableHead className="whitespace-nowrap">Submitted By</TableHead>
           <TableHead className="text-right sticky right-0 bg-card border-l whitespace-nowrap">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -381,6 +388,7 @@ function AdhearTable({
           <TableHead className="whitespace-nowrap">Contact Name</TableHead>
           <TableHead className="whitespace-nowrap">Contact Email</TableHead>
           <TableHead className="whitespace-nowrap max-w-[180px]">Issue Description</TableHead>
+          <TableHead className="whitespace-nowrap">Submitted By</TableHead>
           <TableHead className="text-right sticky right-0 bg-card border-l whitespace-nowrap">Actions</TableHead>
         </TableRow>
       </TableHeader>

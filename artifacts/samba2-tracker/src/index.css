@@ -59,7 +59,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 90%;
-  --primary: 0 100% 24%; /* #7a0000 */
+  --primary: 349 90% 41%; /* #7a0000 */
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 90%;
   --secondary-foreground: 0 0% 9%;
@@ -88,7 +88,7 @@
   --popover: 0 0% 12%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 0 0% 20%;
-  --primary: 0 100% 24%;
+  --primary: 349 90% 41%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 20%;
   --secondary-foreground: 0 0% 98%;

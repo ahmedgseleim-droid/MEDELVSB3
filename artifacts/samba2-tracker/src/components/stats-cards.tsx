@@ -1,4 +1,4 @@
-type Record = { id: number; patientName: string; dob: string; phone: string; serial: string; implant: string; issueDescription: string; conditions: string; skin: string[]; visual: string[]; audio: string[]; physical: string[]; accessory: string[]; connectivity: string[]; steps: string[]; resolved: string; resolvedHow: string; nextAction: string; contactName: string; contactEmail: string; };
+import { Record } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
