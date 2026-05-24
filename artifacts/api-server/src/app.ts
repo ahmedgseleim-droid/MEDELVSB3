@@ -26,6 +26,7 @@ app.use(
     },
   }),
 );
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,7 +34,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
-  const frontendDist = path.resolve(process.cwd(), "artifacts/samba2-tracker/dist/public");
+  const frontendDist = path.resolve(
+    process.cwd(),
+    "../../artifacts/samba2-tracker/dist/public"
+  );
   app.use(express.static(frontendDist));
   app.get("/{*splat}", (_req, res) => {
     res.sendFile(path.join(frontendDist, "index.html"));
