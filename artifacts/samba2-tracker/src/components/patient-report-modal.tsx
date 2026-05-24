@@ -1,26 +1,5 @@
 import { useRef } from "react";
-type Record = {
-  id: number;
-  patientName: string;
-  dob: string;
-  phone: string;
-  serial: string;
-  implant: string;
-  issueDescription: string;
-  conditions: string;
-  skin: string[];
-  visual: string[];
-  audio: string[];
-  physical: string[];
-  accessory: string[];
-  connectivity: string[];
-  steps: string[];
-  resolved: string;
-  resolvedHow: string;
-  nextAction: string;
-  contactName: string;
-  contactEmail: string;
-};
+type Record = { id: number; patientName: string; dob: string; phone: string; serial: string; implant: string; issueDescription: string; conditions: string; skin: string[]; visual: string[]; audio: string[]; physical: string[]; accessory: string[]; connectivity: string[]; steps: string[]; resolved: string; resolvedHow: string; nextAction: string; contactName: string; contactEmail: string; };
 import {
   Dialog,
   DialogContent,
@@ -91,6 +70,161 @@ const ADHEAR_OTHER = ["Skin irritation where device is worn", "Device feels unco
 const ADHEAR_ADAPTER = ["Changed location of Adhesive Adapter", "Cleaning/Checking site of placement for obstructions", "Replaced Adhesive Adapter"];
 const ADHEAR_PROCESSOR = ["Replaced battery", "Cleaned device components", "Restarted the device", "Checking coupling plate (Fixed or Loose)", "Other"];
 
+function buildPrintHtml(record: Record, rowNumber: number, isAdhear: boolean): string {
+  const has = (arr: string[] | null | undefined, val: string) => (arr ?? []).includes(val);
+  const date = new Date().toLocaleDateString("en-GB");
+  const deviceLabel = isAdhear ? "ADHEAR" : "SAMBA 2";
+
+  const checkItem = (label: string, checked: boolean) => `
+    <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;">
+      <div style="width:12px;height:12px;border:1.5px solid ${checked ? "#7f1212" : "#ccc"};border-radius:2px;flex-shrink:0;margin-top:1px;background:${checked ? "#7f1212" : "white"};display:flex;align-items:center;justify-content:center;">
+        ${checked ? '<span style="color:white;font-size:9px;line-height:1;font-weight:700;">✓</span>' : ""}
+      </div>
+      <span style="font-size:11px;color:${checked ? "#111" : "#bbb"};">${label}</span>
+    </div>`;
+
+  const section = (title: string, content: string) => `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#7f1212;border-bottom:1px solid #e0c0c0;padding-bottom:4px;margin-bottom:8px;">${title}</div>
+      ${content}
+    </div>`;
+
+  const infoRow = (label: string, value: string) => `
+    <div style="display:flex;gap:4px;margin-bottom:3px;font-size:11px;">
+      <span style="font-weight:600;color:#555;min-width:130px;flex-shrink:0;">${label}:</span>
+      <span style="color:#111;">${value || "—"}</span>
+    </div>`;
+
+  const checkGroup = (title: string, items: string[], arr: string[] | null | undefined) => `
+    <div>
+      <div style="font-size:10px;font-weight:600;color:#555;margin-bottom:6px;">${title}</div>
+      ${items.map(o => checkItem(o, has(arr, o))).join("")}
+    </div>`;
+
+  const resolvedColor = record.resolved === "Yes" ? "#166534" : record.resolved === "No" ? "#991b1b" : "#555";
+  const resolvedBg = record.resolved === "Yes" ? "#dcfce7" : record.resolved === "No" ? "#fee2e2" : "#f3f4f6";
+
+  const samba2Checklist = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;">
+      ${checkGroup("Skin Issues", SAMBA2_SKIN, record.skin)}
+      ${checkGroup("Visual Inspection", SAMBA2_VISUAL, record.visual)}
+      ${checkGroup("Audio Issues", SAMBA2_AUDIO, record.audio)}
+      ${checkGroup("Physical Issues", SAMBA2_PHYSICAL, record.physical)}
+      ${checkGroup("Accessory Issues", SAMBA2_ACCESSORY, record.accessory)}
+      ${checkGroup("Connectivity Issues", SAMBA2_CONNECTIVITY, record.connectivity)}
+    </div>`;
+
+  const adhearChecklist = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;">
+      ${checkGroup("Audio Quality Issues", ADHEAR_AUDIO, record.audio)}
+      ${checkGroup("Physical Device Issues", ADHEAR_PHYSICAL, record.physical)}
+      ${checkGroup("Connectivity Issues", ADHEAR_CONNECTIVITY, record.connectivity)}
+      ${checkGroup("Other Issues", ADHEAR_OTHER, record.accessory)}
+    </div>`;
+
+  const adhearSteps = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;">
+      ${checkGroup("Adhesive Adapter", ADHEAR_ADAPTER, record.skin)}
+      ${checkGroup("ADHEAR Audio Processor", ADHEAR_PROCESSOR, record.steps)}
+    </div>`;
+
+  const samba2Steps = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+      ${SAMBA2_STEPS.map(o => checkItem(o, has(record.steps, o))).join("")}
+    </div>`;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Patient Report — ${record.patientName}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #111; background: white; padding: 28px 36px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7f1212;padding-bottom:12px;margin-bottom:16px;">
+    <div>
+      <div style="font-size:17px;font-weight:700;color:#7f1212;">MEDEL — ${deviceLabel} Troubleshooting Report</div>
+      <div style="font-size:10px;color:#666;margin-top:2px;">Patient Case Record</div>
+    </div>
+    <div style="text-align:right;font-size:10px;color:#666;">
+      <div style="font-weight:600;">Record #${rowNumber}</div>
+      <div>${date}</div>
+    </div>
+  </div>
+
+  ${section("Patient & Device Information", `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+      ${infoRow("Patient Name", record.patientName)}
+      ${infoRow("Date of Birth", record.dob)}
+      ${infoRow("Contact Phone", record.phone)}
+      ${infoRow("Serial Number", record.serial)}
+      ${!isAdhear ? infoRow("Implant Type", record.implant) : ""}
+    </div>
+  `)}
+
+  ${section("Issue Description", `
+    <div style="background:#f9f9f9;border:1px solid #e8e8e8;border-radius:4px;padding:8px 10px;min-height:40px;font-size:11px;color:#333;white-space:pre-wrap;">
+      ${record.issueDescription || "—"}
+    </div>
+  `)}
+
+  ${record.conditions ? section(isAdhear ? "User Feedback" : "Conditions", `
+    <div style="background:#f9f9f9;border:1px solid #e8e8e8;border-radius:4px;padding:8px 10px;min-height:36px;font-size:11px;color:#333;white-space:pre-wrap;">
+      ${record.conditions}
+    </div>
+  `) : ""}
+
+  ${section("Troubleshooting Checklist", isAdhear ? adhearChecklist : samba2Checklist)}
+
+  ${isAdhear
+    ? section("Troubleshooting Steps Attempted", adhearSteps)
+    : section("Steps Taken", samba2Steps)}
+
+  ${section("Resolution", `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:600;color:#555;margin-bottom:5px;">Status</div>
+        <span style="display:inline-block;padding:2px 12px;border-radius:10px;font-size:10px;font-weight:700;background:${resolvedBg};color:${resolvedColor};">
+          ${record.resolved || "Not set"}
+        </span>
+      </div>
+      ${record.resolved === "Yes" && record.resolvedHow ? `
+        <div>
+          <div style="font-size:10px;font-weight:600;color:#555;margin-bottom:5px;">Resolved How</div>
+          <div style="font-size:11px;">${record.resolvedHow}</div>
+        </div>` : ""}
+      ${record.resolved === "No" && record.nextAction ? `
+        <div>
+          <div style="font-size:10px;font-weight:600;color:#555;margin-bottom:5px;">Next Action</div>
+          <div style="font-size:11px;">${record.nextAction}</div>
+        </div>` : ""}
+    </div>
+  `)}
+
+  ${(record.contactName || record.contactEmail) ? section("Contact", `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+      ${record.contactName ? infoRow("Contact Name", record.contactName) : ""}
+      ${record.contactEmail ? infoRow("Contact Email", record.contactEmail) : ""}
+    </div>
+  `) : ""}
+
+  <!-- Footer -->
+  <div style="margin-top:20px;padding-top:8px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:9px;color:#999;">
+    <span>MEDEL — ${deviceLabel} Troubleshooting Report</span>
+    <span>Record #${rowNumber} &nbsp;·&nbsp; ${date}</span>
+  </div>
+
+  <script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+}
+
 export function PatientReportModal({ record, rowNumber, onClose }: PatientReportModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -100,54 +234,9 @@ export function PatientReportModal({ record, rowNumber, onClose }: PatientReport
   const has = (arr: string[] | null | undefined, val: string) => (arr ?? []).includes(val);
 
   const handlePrint = () => {
-    const el = printRef.current;
-    if (!el) return;
-    const win = window.open("", "_blank", "width=850,height=1100");
+    const win = window.open("", "_blank", "width=900,height=1100");
     if (!win) return;
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Patient Report — ${record.patientName}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #111; background: white; padding: 28px 36px; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #7f1212; }
-          .header-title { font-size: 17px; font-weight: 700; color: #7f1212; }
-          .header-subtitle { font-size: 10px; color: #666; margin-top: 2px; }
-          .header-meta { text-align: right; font-size: 10px; color: #666; }
-          .section { margin-bottom: 16px; }
-          .section-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7f1212; border-bottom: 1px solid #e0c0c0; padding-bottom: 4px; margin-bottom: 8px; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; }
-          .info-row { display: flex; gap: 4px; }
-          .info-label { font-weight: 600; color: #555; min-width: 120px; }
-          .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; }
-          .check-item { display: flex; align-items: flex-start; gap: 5px; line-height: 1.4; }
-          .check-box { width: 11px; height: 11px; border: 1px solid #aaa; border-radius: 2px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
-          .check-box.checked { border-color: #7f1212; background: #7f1212; color: white; }
-          .check-box.checked::after { content: '✓'; font-size: 8px; color: white; line-height: 1; }
-          .check-label { color: #333; }
-          .check-label.unchecked { color: #bbb; }
-          .text-block { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 4px; padding: 7px 9px; min-height: 40px; font-size: 11px; color: #333; white-space: pre-wrap; }
-          .resolved-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; }
-          .resolved-yes { background: #dcfce7; color: #166534; }
-          .resolved-no { background: #fee2e2; color: #991b1b; }
-          .resolved-dash { background: #f3f4f6; color: #666; }
-          .footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 9px; color: #999; }
-          .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        </style>
-      </head>
-      <body>
-        ${el.innerHTML}
-        <div class="footer">
-          <span>MEDEL — ${isAdhear ? "ADHEAR" : "SAMBA 2"} Troubleshooting Report</span>
-          <span>Record #${rowNumber} &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</span>
-        </div>
-        <script>window.onload = function(){ window.print(); }<\/script>
-      </body>
-      </html>
-    `);
+    win.document.write(buildPrintHtml(record, rowNumber, isAdhear));
     win.document.close();
   };
 
